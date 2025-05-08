@@ -1,23 +1,26 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class TestMoveFollowWaypoint : MonoBehaviour
+public class EnemyMoveController : MonoBehaviour
 {
     [SerializeField] PolyNavAgent agent;
-    [SerializeField] Waypoint waypoint;
+    Waypoint waypoint;
     private void Start()
     {
-       
+
         //transform.position = waypoint.Points.First().position;
         //currentIndex = 1;
         //currentTarget = waypoint.Points[currentIndex];
         //agent.SetDestination(currentTarget.position);
     }
+    [Button("Set Move")]
+
     public void SetMove(Waypoint wp)
     {
-        if(!wp) return;
+        if (!wp) return;
         waypoint = wp;
         StartCoroutine(MoveThroughWP());
     }
@@ -39,6 +42,8 @@ public class TestMoveFollowWaypoint : MonoBehaviour
                      currentIndex++;
                      if (currentIndex <= waypoint.Points.Count - 1)
                          currentTarget = waypoint.Points[currentIndex];
+                     else
+                         gameObject.SetActive(false);
                  }
              });
             yield return new WaitForSeconds(.2f);

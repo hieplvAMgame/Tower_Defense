@@ -7,7 +7,7 @@ public class Waypoint : MonoBehaviour
 {
     [SerializeField] List<Transform> points = new();
     public List<Transform> Points => points;
-
+    [SerializeField] Color colorLine = Color.blue;
     public bool HaveMore2Point => points.Count >= 2;
     private void OnDrawGizmos()
     {
@@ -20,7 +20,7 @@ public class Waypoint : MonoBehaviour
             int index = i;
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(points[index].position, .2f);
-            Gizmos.color = Color.blue;
+            Gizmos.color = colorLine;
             Gizmos.DrawLine(points[index].position, points[index - 1].position);
         }
     }
