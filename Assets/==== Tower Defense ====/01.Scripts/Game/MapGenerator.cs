@@ -1,6 +1,9 @@
+using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -8,7 +11,8 @@ public class MapGenerator : MonoBehaviour
     public GameObject tilePrefab;
     public Vector2 spacing;
     [Space, SerializeField] MapData mapData;
-    List<GameObject> map = new List<GameObject>();
+    [SerializeField] TextAsset dataLocal;
+    public List<GameObject> map = new List<GameObject>();
     GameObject go;
     [Button]
     public void GenMap(int width, int height)
@@ -29,17 +33,19 @@ public class MapGenerator : MonoBehaviour
         }
     }
     Tile _tile;
-    Dictionary<Vector2Int, bool> dict = new Dictionary<Vector2Int, bool>();
-    [Button("Export Data")]
-    public void ExportData()
+    Dictionary<Vector2Int, int> dict = new Dictionary<Vector2Int, int>();
+    [Button("SAVE DATA")]
+    private void SaveToLocalData(int lv)
     {
         dict.Clear();
         foreach (var tile in map)
         {
             _tile = tile.GetComponent<Tile>();
             if (!dict.ContainsKey(new Vector2Int(_tile.X, _tile.Y)))
-                dict.Add(new Vector2Int(_tile.X, _tile.Y), _tile.IsBuilable);
+                dict.Add(new Vector2Int(_tile.X, _tile.Y), _tile.IsBuilable ? 1 : 0);
         }
-        mapData.SaveData(dict, spacing);
+        string path = AssetDatabase.GetAssetPath(dataLocal);
+        File.WriteAllText(path, JsonConvert.SerializeObject(new MapData(lv, spacing.x, spacing.y, dict)));
+        AssetDatabase.Refresh();
     }
 }

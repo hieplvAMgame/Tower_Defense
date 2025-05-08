@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: Map 0
   m_EditorClassIdentifier: 
   ID: 0
-  spacing: {x: 0.1, y: 0.1}
+  spacingX: 0
+  spacingY: 0
