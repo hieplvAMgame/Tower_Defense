@@ -2,17 +2,93 @@ using Sirenix.Utilities.Editor;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public abstract class UnitBase: MonoBehaviour
+using System;
+using Sirenix.OdinInspector;
+public abstract class UnitBase : MonoBehaviour
 {
-    protected int CurrentHP;
+    private int _currentHP;
+    [ShowInInspector]
+    protected int CurrentHP
+    {
+        get => _currentHP;
+        set
+        {
+            if (value <= 0)
+            {
+                _currentHP = 0;
+                OnDie();
+            }
+            else
+            {
+                if (value != _currentHP)
+                    try
+                    {
+                        if (value >= currentConfig.MaxHp)
+                        {
+                            _currentHP = currentConfig.MaxHp;
+                        }
+                        else if (value > _currentHP)
+                        {
+                            OnHeal();
+                            _currentHP = value;
+                            Debug.Log($"Heal {value}");
+                        }
+                        else
+                        {
+                            OnHurt();
+                            _currentHP = value;
+                            Debug.Log($"Minus {value}");
+                        }
+                    }
+                    catch
+                    {
+                        Debug.LogError("No Config or may not init config. Check again !!!");
+                    }
+            }
+        }
+    }
     protected int CurrentLevel;
     public UnitConfig[] Config;
     public virtual Type_Unit TypeUnit { get; }
     public bool IsAlive { get; protected set; }
 
     protected UnitConfig currentConfig;
+    protected Action onHurt = null, onHeal = null, onDie = null;
+    [Button("Init")]
+    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action onDie = null)
+    {
+        CurrentLevel = 0;
+        ApplyConfig(CurrentLevel);
+        this.onHeal = onHeal;
+        this.onHurt = onHurt;
+    }
+    public virtual void ApplyConfig(int id)
+    {
+        currentConfig = Config[id];
+        CurrentHP = currentConfig.MaxHp;
+    }
 
-    public abstract void InitUnit();
-    public abstract void ApplyConfig(int id);
+    public virtual void ChangeHp(int hp)
+    {
+        CurrentHP += hp;
+    }
+    public virtual void UpLevel(int level = 1)
+    {
+        CurrentLevel += level;
+        if (CurrentLevel >= Config.Length)
+            CurrentLevel = Config.Length - 1;
+        ApplyConfig(CurrentLevel);
+    }
+    public virtual void OnHurt()
+    {
+        onHurt?.Invoke();
+    }
+    public virtual void OnHeal()
+    {
+        onHeal?.Invoke();
+    }
+    public virtual void OnDie()
+    {
+        onDie?.Invoke();
+    }
 }

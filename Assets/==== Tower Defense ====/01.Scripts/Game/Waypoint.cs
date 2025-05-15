@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ public class Waypoint : MonoBehaviour
             return;
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(points.First().position, .2f);
-        for(int i = 1; i < points.Count; i++)
+        for (int i = 1; i < points.Count; i++)
         {
             int index = i;
             Gizmos.color = Color.green;
@@ -23,5 +24,12 @@ public class Waypoint : MonoBehaviour
             Gizmos.color = colorLine;
             Gizmos.DrawLine(points[index].position, points[index - 1].position);
         }
+    }
+    public List<Vector2> rs;
+    [Button]
+    public List<Vector2> ConverPointsToArray()
+    {
+        rs = points.Select(p => (Vector2)p.position).ToList();
+        return rs;
     }
 }

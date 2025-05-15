@@ -1,4 +1,5 @@
 using Sirenix.OdinInspector;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,28 +8,35 @@ public class EnemyUnit : UnitBase
 {
     [SerializeField] PolyNavAgent agent;
     [SerializeField] EnemyMoveController moveController;
+    [SerializeField] AnimationController animControl;
     [SerializeField] Waypoint wp;       // tam thoi
-    [Button("Init")]
-    public override void InitUnit()
-    {
-        CurrentLevel = 0;
-        ApplyConfig(CurrentLevel);
-    }
+
+
     public override void ApplyConfig(int id)
     {
-        currentConfig = Config[id];
-        CurrentHP = currentConfig.MaxHp;
+        base.ApplyConfig(id);
         agent.maxSpeed = currentConfig.MoveSpeed;
+        Debug.Log("Enemy Aplly Config");
     }
     [Button]
-    public void SpawnUnit()
+    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action onDie = null)
     {
-        moveController.SetMove(wp);
+        base.InitUnit(onHurt, onHeal, onDie);
+        //moveController.SetMove(wp);
     }
     [Button]
-    public void UpLevel()
+    public override void UpLevel(int level = 1)
     {
-        CurrentLevel++;
-        ApplyConfig(CurrentLevel);
+        base.UpLevel(level);
+    }
+    [Button]
+    public override void ChangeHp(int value)
+    {
+        base.ChangeHp(value);
+    }
+    public override void OnDie()
+    {
+        base.OnDie();
+        animControl.PlayAnim(AnimName.DYING);
     }
 }

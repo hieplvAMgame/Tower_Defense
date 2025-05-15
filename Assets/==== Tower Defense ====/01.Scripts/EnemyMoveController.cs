@@ -7,21 +7,20 @@ using UnityEngine;
 public class EnemyMoveController : MonoBehaviour
 {
     [SerializeField] PolyNavAgent agent;
-    Waypoint waypoint;
+    public Waypoint waypoint;
     private void Start()
     {
-
-        //transform.position = waypoint.Points.First().position;
-        //currentIndex = 1;
-        //currentTarget = waypoint.Points[currentIndex];
-        //agent.SetDestination(currentTarget.position);
     }
+    public List<Vector2> result;
     [Button("Set Move")]
 
     public void SetMove(Waypoint wp)
     {
         if (!wp) return;
         waypoint = wp;
+        //result = waypoint.ConverPointsToArray();
+        //agent.activePath = result;
+        //agent.SetDestination(agent.activePath[0]);
         StartCoroutine(MoveThroughWP());
     }
     Transform currentTarget;

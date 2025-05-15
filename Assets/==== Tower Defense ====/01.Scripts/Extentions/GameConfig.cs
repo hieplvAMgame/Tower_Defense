@@ -13,3 +13,8 @@ public enum Type_Unit
     Berserker,
     Wizard
 }
+public struct AnimName
+{
+    public const string WALKING = "Walking";
+    public const string DYING = "Dying";
+}
