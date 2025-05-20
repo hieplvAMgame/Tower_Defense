@@ -53,14 +53,16 @@ public abstract class UnitBase : MonoBehaviour
     public bool IsAlive { get; protected set; }
 
     protected UnitConfig currentConfig;
-    protected Action onHurt = null, onHeal = null, onDie = null;
+    protected Action onHurt = null, onHeal = null;
+    Action<GameObject> onDie = null;
     [Button("Init")]
-    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action onDie = null)
+    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action<GameObject> onDie = null)
     {
         CurrentLevel = 0;
         ApplyConfig(CurrentLevel);
         this.onHeal = onHeal;
         this.onHurt = onHurt;
+        this.onDie = onDie;
     }
     public virtual void ApplyConfig(int id)
     {
@@ -87,8 +89,10 @@ public abstract class UnitBase : MonoBehaviour
     {
         onHeal?.Invoke();
     }
+    [Button]
     public virtual void OnDie()
     {
-        onDie?.Invoke();
+        onDie?.Invoke(this.gameObject);
+        gameObject.SetActive(false);
     }
 }

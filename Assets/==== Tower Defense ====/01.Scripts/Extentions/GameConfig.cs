@@ -18,3 +18,7 @@ public struct AnimName
     public const string WALKING = "Walking";
     public const string DYING = "Dying";
 }
+public struct GameTag
+{
+    public const string Home = "Home";
+}

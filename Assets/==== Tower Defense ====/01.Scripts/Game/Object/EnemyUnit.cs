@@ -7,7 +7,7 @@ using UnityEngine;
 public class EnemyUnit : UnitBase
 {
     [SerializeField] PolyNavAgent agent;
-    [SerializeField] EnemyMoveController moveController;
+    [SerializeField] UnitAgent moveController;
     [SerializeField] AnimationController animControl;
     [SerializeField] Waypoint wp;       // tam thoi
 
@@ -19,7 +19,7 @@ public class EnemyUnit : UnitBase
         Debug.Log("Enemy Aplly Config");
     }
     [Button]
-    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action onDie = null)
+    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<GameObject> onDie = null)
     {
         base.InitUnit(onHurt, onHeal, onDie);
         //moveController.SetMove(wp);
@@ -37,6 +37,13 @@ public class EnemyUnit : UnitBase
     public override void OnDie()
     {
         base.OnDie();
-        animControl.PlayAnim(AnimName.DYING);
+        animControl?.PlayAnim(AnimName.DYING);
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag(GameTag.Home))
+        {
+            OnDie();
+        }
     }
 }
