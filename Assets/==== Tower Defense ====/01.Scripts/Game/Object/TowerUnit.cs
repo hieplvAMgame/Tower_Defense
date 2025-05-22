@@ -1,18 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TowerUnit : MonoBehaviour
+public class TowerUnit : UnitBase
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] AttackSystem atkSystem;
 
-    // Update is called once per frame
-    void Update()
+    public AttackSystem AttackSystem => atkSystem;
+
+    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
     {
-        
+        base.InitUnit(onHurt, onHeal, onDie);
     }
 }

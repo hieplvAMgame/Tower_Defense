@@ -21,4 +21,5 @@ public struct AnimName
 public struct GameTag
 {
     public const string Home = "Home";
+    public const string Unit = "Unit";
 }

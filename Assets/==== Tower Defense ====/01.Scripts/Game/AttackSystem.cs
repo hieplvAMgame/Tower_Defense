@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class AttackSystem : MonoBehaviour
@@ -8,8 +9,8 @@ public class AttackSystem : MonoBehaviour
     [SerializeField] CircleCollider2D circleRange;
     [SerializeField] UnitConfig currentConfig;
     [ShowInInspector]
-    public Queue<GameObject> queue = new();
-    public GameObject currentTarget = null;
+    public List<UnitBase> queue = new();
+    public UnitBase currentTarget = null;
     private void Awake()
     {
         Setup(currentConfig);
@@ -24,30 +25,72 @@ public class AttackSystem : MonoBehaviour
     {
         Gizmos.color = Color.magenta;
         if (currentConfig)
+        {
             Gizmos.DrawWireSphere(transform.position, currentConfig.AttackRange);
+            if (currentTarget)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(transform.position, currentTarget.transform.position);
+            }
+        }
     }
+    UnitBase _unit;
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!queue.Contains(collision.gameObject))
+        if (!collision.CompareTag(GameTag.Unit)) return;
+        if (collision.TryGetComponent(out _unit))
         {
-            queue.Enqueue(collision.gameObject);
-            Debug.Log($"Add {gameObject.name}");
-            if (!currentTarget)
-                currentTarget = queue.Dequeue();
+            if (!queue.Contains(_unit))
+            {
+                queue.Add(_unit);
+                Debug.Log($"Add {gameObject.name}");
+                if (!currentTarget)
+                    currentTarget = queue.FirstOrDefault();
+            }
         }
     }
     public void OnTriggerExit2D(Collider2D collision)
     {
-        ChangeTarget();
-    }
-    public void ChangeTarget(GameObject checker = null)
-    {
-        if (currentTarget || currentTarget.GetInstanceID() == checker.GetInstanceID())
+        if (!collision.CompareTag(GameTag.Unit)) return;
+        if (collision.TryGetComponent(out _unit))
         {
+            if (_unit.IsAlive)
+            {
+                ChangeTarget();
+            }
+        }
+    }
+    public void CheckRemove(UnitBase checker = null)
+    {
+        if (queue.Contains(checker))
+        {
+            if (currentTarget == checker)
+            {
+                ChangeTarget();
+            }
+            else
+            {
+                queue.Remove(checker);
+            }
+        }
+    }
+    // TODO: Handle logic after an unit die
+    public void ChangeTarget()
+    {
+        if (currentTarget)
+        {
+            queue.Remove(currentTarget);
             if (queue.Count > 0)
-                currentTarget = queue.Dequeue();
+                currentTarget = queue.FirstOrDefault();
             else
                 currentTarget = null;
         }
+    }
+    public void OnRemoveTargetInQueue(UnitBase target)
+    {
+        // Logic check: enemy co trong target queue k
+        // neu co thi remove
+        Debug.Log($"Check remove {target.gameObject.name}");
+        CheckRemove(target);
     }
 }

@@ -54,15 +54,18 @@ public abstract class UnitBase : MonoBehaviour
 
     protected UnitConfig currentConfig;
     protected Action onHurt = null, onHeal = null;
-    Action<GameObject> onDie = null;
+
+    // TODO: Refactor
+    public event Action<UnitBase> onDie;
     [Button("Init")]
-    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action<GameObject> onDie = null)
+    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
     {
         CurrentLevel = 0;
         ApplyConfig(CurrentLevel);
         this.onHeal = onHeal;
         this.onHurt = onHurt;
-        this.onDie = onDie;
+        this.onDie += onDie;
+        IsAlive = true;
     }
     public virtual void ApplyConfig(int id)
     {
@@ -92,7 +95,12 @@ public abstract class UnitBase : MonoBehaviour
     [Button]
     public virtual void OnDie()
     {
-        onDie?.Invoke(this.gameObject);
+        onDie?.Invoke(this);
+        IsAlive = false;
         gameObject.SetActive(false);
+    }
+    private void OnDisable()
+    {
+        onDie = null;
     }
 }

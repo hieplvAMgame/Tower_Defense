@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class WaveManager : MonoBehaviour
 {
+    // Tam thoi
+    [SerializeField] TowerUnit tower;
+
     [SerializeField] Wave wave;
     [SerializeField] Transform tfSpawn;
     [SerializeField] List<AttackSystem> atkSystem = new();
@@ -49,21 +52,16 @@ public class WaveManager : MonoBehaviour
             yield return new WaitForSeconds(wave.intervalTime);
         }
     }
+    // TODO: Refactor, add event on unit die to tower
     private GameObject SpawnObj(Vector3 posSpawn, Action<GameObject> onUnitDie = null)
     {
         go = ObjectPooling.Instance.GetObjFromPool(wave.unitPrefabs);
+        // Them listener de nghe su kien chet
         go.transform.position = posSpawn;
         go.SetActive(true);
         if (go.TryGetComponent(out UnitAgent enemy))
         {
-            enemy.Unit.InitUnit(onDie: obj =>
-            {
-                foreach (var item in atkSystem)
-                {
-                    item.ChangeTarget(obj);
-                }
-                onUnitDie(obj);
-            });
+            enemy.Unit.InitUnit(onDie: tower.AttackSystem.OnRemoveTargetInQueue);
             enemy.Setup(waypoint, navMap);
             enemy.StartMove();
         }

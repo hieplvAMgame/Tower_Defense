@@ -19,7 +19,7 @@ public class EnemyUnit : UnitBase
         Debug.Log("Enemy Aplly Config");
     }
     [Button]
-    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<GameObject> onDie = null)
+    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
     {
         base.InitUnit(onHurt, onHeal, onDie);
         //moveController.SetMove(wp);
