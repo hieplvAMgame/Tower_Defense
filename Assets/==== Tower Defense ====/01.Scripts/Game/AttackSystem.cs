@@ -2,50 +2,63 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
-
 public class AttackSystem : MonoBehaviour
 {
     [SerializeField] bool showGizmos;
     [SerializeField] CircleCollider2D circleRange;
-    [SerializeField] UnitConfig currentConfig;
+
     [ShowInInspector]
     public List<UnitBase> queue = new();
-    public UnitBase currentTarget = null;
-    [Space]
-    [SerializeField] GameObject bullet;
-    private void Awake()
-    {
-        Setup(currentConfig);
-        bullet = Resources.Load<GameManagement>("GameConfig").projectile.FirstOrDefault();
-    }
-    [Button]
-    public void Setup(UnitConfig config)
-    {
-        circleRange.radius = config.AttackRange;
-    }
+    UnitBase currentTarget = null;
+    GameObject bullet;
+    UnitBase _owner;
 
-#region AIM TARGET
+    float _countTime = 0;
+    public void Setup(UnitBase owner)
+    {
+        _owner = owner;
+        circleRange.radius = owner.CurrentConfig.AttackRange;
+        bullet = Resources.Load<GameManagement>("GameConfig").GetBullet(_owner.TypeUnit);
+        _countTime = _owner.CurrentConfig.FireRate;
+    }
+    private void Update()
+    {
+        _countTime += Time.deltaTime;
+        if (!currentTarget) return;
+        if (_countTime >= _owner.CurrentConfig.FireRate)
+        {
+            Attack();
+            _countTime = 0;
+            return;
+        }
+    }
+    #region AIM TARGET
 
     UnitBase _unit;
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!collision.CompareTag(GameTag.Unit)) return;
-        if (collision.TryGetComponent(out _unit))
+        if (!collision.TryGetComponent(out _unit)) return;
+        Debug.Log($"Is Tower = {_unit is TowerUnit}");
+        if (!_owner.CanAttack(_unit))
         {
-            if (!queue.Contains(_unit))
-            {
-                queue.Add(_unit);
-                Debug.Log($"Add {gameObject.name}");
-                if (!currentTarget)
-                    currentTarget = queue.FirstOrDefault();
-            }
+            _unit = null;
+            return;
+        }
+        if (!queue.Contains(_unit))
+        {
+            queue.Add(_unit);
+            Debug.Log($"{_owner.gameObject.name}Add {_unit.gameObject.name} to target");
+            if (!currentTarget)
+                currentTarget = queue.FirstOrDefault();
         }
     }
     public void OnTriggerExit2D(Collider2D collision)
     {
         if (!collision.CompareTag(GameTag.Unit)) return;
-        if (collision.TryGetComponent(out _unit))
+        if (collision.TryGetComponent(out _unit) && _owner.CanAttack(_unit))
         {
             if (_unit.IsAlive)
             {
@@ -93,8 +106,8 @@ public class AttackSystem : MonoBehaviour
     public void Attack()
     {
         go = ObjectPooling.Instance.GetObjFromPool(bullet);
-        go.transform.position = transform.position;
-        go.GetComponent<Bullet>().SetTarget(currentTarget.transform);
+        go.transform.position = _owner.transform.position;
+        go.GetComponent<Bullet>().Setup(currentTarget.transform, _owner);
         go.gameObject.SetActive(true);
     }
     #endregion
@@ -102,13 +115,13 @@ public class AttackSystem : MonoBehaviour
     {
         if (!showGizmos) return;
         Gizmos.color = Color.magenta;
-        if (currentConfig)
+        if (_owner && _owner.CurrentConfig)
         {
-            Gizmos.DrawWireSphere(transform.position, currentConfig.AttackRange);
+            Gizmos.DrawWireSphere(_owner.transform.position, _owner.CurrentConfig.AttackRange);
             if (currentTarget)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, currentTarget.transform.position);
+                Gizmos.DrawLine(_owner.transform.position, currentTarget.transform.position);
             }
         }
     }

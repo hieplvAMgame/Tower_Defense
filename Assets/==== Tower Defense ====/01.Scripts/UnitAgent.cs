@@ -9,7 +9,7 @@ public class UnitAgent : MonoBehaviour
     [SerializeField] PolyNavAgent agent;
     [SerializeField] UnitBase _unit;
 
-    public UnitBase Unit =>_unit;
+    public UnitBase Unit => _unit;
 
     private Waypoint waypoints;
     public float waypointReachThreshold = 0.2f;
@@ -22,6 +22,7 @@ public class UnitAgent : MonoBehaviour
     }
     public void Setup(Waypoint wp, PolyNav2D map)
     {
+        currentIndex = 0;
         waypoints = wp;
         agent.map = map;
     }

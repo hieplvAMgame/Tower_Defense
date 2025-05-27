@@ -9,9 +9,11 @@ public class Bullet : MonoBehaviour
     [SerializeField] GameObject onHitVfx;
     Transform target = null;
     private Vector2 _dir;
-    public void SetTarget(Transform target)
+    UnitBase _owner;
+    public void Setup(Transform target, UnitBase owner)
     {
         this.target = target;
+        _owner = owner;
     }
 
     private void Update()
@@ -31,14 +33,16 @@ public class Bullet : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag(GameTag.Unit))
+        if (collision.gameObject.TryGetComponent(out UnitBase target))
         {
+            if (!_owner.CanAttack(target)) return;
             Reset();
-            Vector2 contactPoint = collision.bounds.center ;
+            Vector2 contactPoint = collision.bounds.center;
             GameObject hitVfx = ObjectPooling.Instance.GetObjFromPool(onHitVfx);
             hitVfx.transform.position = contactPoint;
             hitVfx.gameObject.SetActive(true);
             gameObject.SetActive(false);
+            target.ChangeHp(-_owner.CurrentConfig.Damage);
         }
     }
 }

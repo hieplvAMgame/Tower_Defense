@@ -11,17 +11,19 @@ public class EnemyUnit : UnitBase
     [SerializeField] AnimationController animControl;
     [SerializeField] Waypoint wp;       // tam thoi
 
+    public override Type_Unit TypeUnit => Type_Unit.Zombie;
+    public override Type_Unit[] TargetUnitsType => new Type_Unit[] {Type_Unit.Archer_Tower,Type_Unit.Canon_Tower,Type_Unit.Freeze_Tower};
 
     public override void ApplyConfig(int id)
     {
         base.ApplyConfig(id);
-        agent.maxSpeed = currentConfig.MoveSpeed;
+        agent.maxSpeed = _currentConfig.MoveSpeed;
         Debug.Log("Enemy Aplly Config");
     }
     [Button]
-    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
+    public override void InitUnit(bool isReset = false)
     {
-        base.InitUnit(onHurt, onHeal, onDie);
+        base.InitUnit(isReset);
         //moveController.SetMove(wp);
     }
     [Button]

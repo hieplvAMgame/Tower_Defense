@@ -23,9 +23,10 @@ public abstract class UnitBase : MonoBehaviour
                 if (value != _currentHP)
                     try
                     {
-                        if (value >= currentConfig.MaxHp)
+                        if (value >= _currentConfig.MaxHp)
                         {
-                            _currentHP = currentConfig.MaxHp;
+                            OnHeal();
+                            _currentHP = _currentConfig.MaxHp;
                         }
                         else if (value > _currentHP)
                         {
@@ -47,30 +48,52 @@ public abstract class UnitBase : MonoBehaviour
             }
         }
     }
-    protected int CurrentLevel;
+    public int CurrentLevel { get; protected set; }
     public UnitConfig[] Config;
+    [ShowInInspector]
     public virtual Type_Unit TypeUnit { get; }
+    [ShowInInspector]
+    public virtual Type_Unit[] TargetUnitsType { get; }
     public bool IsAlive { get; protected set; }
 
-    protected UnitConfig currentConfig;
+    protected UnitConfig _currentConfig;
+    public UnitConfig CurrentConfig => _currentConfig;
     protected Action onHurt = null, onHeal = null;
+    [SerializeField] AttackSystem _attackSystem;
+    public AttackSystem AttackSystem =>_attackSystem;
 
     // TODO: Refactor
     public event Action<UnitBase> onDie;
     [Button("Init")]
-    public virtual void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
+    public virtual void InitUnit( bool isReset = false)
     {
-        CurrentLevel = 0;
-        ApplyConfig(CurrentLevel);
+        if (isReset)
+            CurrentLevel = 0;
+        ApplyConfig();
+        IsAlive = true;
+        if (_attackSystem)
+        {
+            _attackSystem.Setup(this);
+        }
+    }
+    public UnitBase AddEvent(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
+    {
         this.onHeal = onHeal;
         this.onHurt = onHurt;
         this.onDie += onDie;
-        IsAlive = true;
+        return this;
     }
-    public virtual void ApplyConfig(int id)
+    public virtual void ApplyConfig(int id = -1)
     {
-        currentConfig = Config[id];
-        CurrentHP = currentConfig.MaxHp;
+        // default
+        if (id < 0)
+        {
+            _currentConfig = Config[CurrentLevel];
+            CurrentHP = _currentConfig.MaxHp;
+            return;
+        }
+        _currentConfig = Config[id];
+        CurrentHP = _currentConfig.MaxHp;
     }
 
     public virtual void ChangeHp(int hp)

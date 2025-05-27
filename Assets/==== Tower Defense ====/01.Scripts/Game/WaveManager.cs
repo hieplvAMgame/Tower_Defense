@@ -4,14 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WaveManager : MonoBehaviour
+public class WaveManager : Singleton<WaveManager>
 {
     // Tam thoi
     [SerializeField] TowerUnit tower;
-
     [SerializeField] Wave wave;
     [SerializeField] Transform tfSpawn;
     [SerializeField] List<AttackSystem> atkSystem = new();
+
     int _curQuantity;
     private int CurrentQuantity
     {
@@ -32,9 +32,11 @@ public class WaveManager : MonoBehaviour
     [SerializeField] Waypoint waypoint;
     [SerializeField] PolyNav2D navMap;
     GameObject go;
+    public List<UnitBase> units = new();
     [Button]
     public void SpawnWave()
     {
+        units.Clear();
         onCurrentWave = lastWave => Debug.Log("Chau cuoi cung die!");
         StartCoroutine(CoSpawnWave(tfSpawn.position, _ =>
         {
@@ -59,13 +61,18 @@ public class WaveManager : MonoBehaviour
         // Them listener de nghe su kien chet
         go.transform.position = posSpawn;
         go.SetActive(true);
+        units.Add(go.GetComponent<UnitBase>());
         if (go.TryGetComponent(out UnitAgent enemy))
         {
-            enemy.Unit.InitUnit(onDie: tower.AttackSystem.OnRemoveTargetInQueue);
+
+            // TODO: Refactor
+            tower.AddEvent(onDie: enemy.Unit.AttackSystem.OnRemoveTargetInQueue);
+            enemy.Unit
+                .AddEvent(onDie: tower.AttackSystem.OnRemoveTargetInQueue)
+                .InitUnit();
             enemy.Setup(waypoint, navMap);
             enemy.StartMove();
         }
-        
         return go;
     }
 }

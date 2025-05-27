@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class TowerUnit : UnitBase
 {
-    [SerializeField] AttackSystem atkSystem;
+    public override Type_Unit TypeUnit => Type_Unit.Canon_Tower;
+    public override Type_Unit[] TargetUnitsType => new Type_Unit[] { Type_Unit.Vampire, Type_Unit.Zombie, Type_Unit.Dragon };
 
-    public AttackSystem AttackSystem => atkSystem;
-
-    public override void InitUnit(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
+    public override void InitUnit(bool isReset = false)
     {
-        base.InitUnit(onHurt, onHeal, onDie);
+        base.InitUnit(isReset);
     }
 }
