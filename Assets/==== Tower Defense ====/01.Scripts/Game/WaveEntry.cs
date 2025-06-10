@@ -2,17 +2,20 @@ using Sirenix.OdinInspector;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class WaveManager : Singleton<WaveManager>
+public class WaveEntry : MonoBehaviour
 {
     // Tam thoi
+    public int id;
     [SerializeField] TowerUnit tower;
     [SerializeField] Wave wave;
     [SerializeField] Transform tfSpawn;
     [SerializeField] List<AttackSystem> atkSystem = new();
 
     int _curQuantity;
+    bool isClear => CurrentQuantity == 0;
     private int CurrentQuantity
     {
         get => _curQuantity;
@@ -21,43 +24,67 @@ public class WaveManager : Singleton<WaveManager>
             if (value <= 0)
             {
                 _curQuantity = 0;
-                onCurrentWave?.Invoke(0);
             }
             else
                 _curQuantity = value;
+            onChangeQuantityUnit?.Invoke(_curQuantity);
         }
     }
-    Action<int> onCurrentWave = null;
+    Action<int> onChangeQuantityUnit = null;
     // Refactor sau
     [SerializeField] Waypoint waypoint;
     [SerializeField] PolyNav2D navMap;
     GameObject go;
     public List<UnitBase> units = new();
+
+    public void Setup(Wave wave)
+    {
+        if(wave.idWaveEntry!= id)
+        {
+            Debug.LogError("Wave not match entry id. Pls check config!");
+            return;
+        }
+        this.wave = wave;
+    }
+
     [Button]
     public void SpawnWave()
     {
         units.Clear();
-        onCurrentWave = lastWave => Debug.Log("Chau cuoi cung die!");
+        onChangeQuantityUnit = num =>
+        {
+            if (num <= 0)
+            {
+                Debug.Log($"Current = {num}");
+                // Handle event khi clear wave o entry nay
+            }
+        };
         StartCoroutine(CoSpawnWave(tfSpawn.position, _ =>
         {
             CurrentQuantity--;
         }));
-        _curQuantity = wave.quantity;
+        _curQuantity = wave.TotalQuantity;
     }
     IEnumerator CoSpawnWave(Vector3 posSpawn, Action<GameObject> onUnitDie = null)
     {
         int count = 0;
-        while (count <= wave.quantity - 1)
+        int index = 0;
+        while (index < wave.crowds.Count)
         {
             count++;
-            SpawnObj(posSpawn, onUnitDie).name = $"Enemy {count}";
+            SpawnObj(index,posSpawn, onUnitDie).name = $"Enemy {count}";
+            if (count >= wave.crowds[index].quantity)
+            {
+                count = 0;
+                index++;
+            }
             yield return new WaitForSeconds(wave.intervalTime);
         }
     }
     // TODO: Refactor, add event on unit die to tower
-    private GameObject SpawnObj(Vector3 posSpawn, Action<GameObject> onUnitDie = null)
+    private GameObject SpawnObj(int indexUnit, Vector3 posSpawn, Action<GameObject> onUnitDie = null)
     {
-        go = ObjectPooling.Instance.GetObjFromPool(wave.unitPrefabs);
+        go = ObjectPooling.Instance.GetObjFromPool(wave.crowds[indexUnit].unitPrefabs);
         // Them listener de nghe su kien chet
         go.transform.position = posSpawn;
         go.SetActive(true);
@@ -68,7 +95,11 @@ public class WaveManager : Singleton<WaveManager>
             // TODO: Refactor
             tower.AddEvent(onDie: enemy.Unit.AttackSystem.OnRemoveTargetInQueue);
             enemy.Unit
-                .AddEvent(onDie: tower.AttackSystem.OnRemoveTargetInQueue)
+                .AddEvent(onDie: _ =>
+                {
+                    tower.AttackSystem.OnRemoveTargetInQueue(_);
+                    onUnitDie?.Invoke(_.gameObject);
+                })
                 .InitUnit();
             enemy.Setup(waypoint, navMap);
             enemy.StartMove();
@@ -76,10 +107,5 @@ public class WaveManager : Singleton<WaveManager>
         return go;
     }
 }
-[System.Serializable]
-public class Wave
-{
-    public GameObject unitPrefabs;
-    public float intervalTime;
-    public int quantity;
-}
+// Tower: 5
+// Tower[]

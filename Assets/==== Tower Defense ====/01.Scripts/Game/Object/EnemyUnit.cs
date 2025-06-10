@@ -18,7 +18,6 @@ public class EnemyUnit : UnitBase
     {
         base.ApplyConfig(id);
         agent.maxSpeed = _currentConfig.MoveSpeed;
-        Debug.Log("Enemy Aplly Config");
     }
     [Button]
     public override void InitUnit(bool isReset = false)

@@ -13,13 +13,12 @@ public class AttackSystem : MonoBehaviour
     public List<UnitBase> queue = new();
     UnitBase currentTarget = null;
     GameObject bullet;
-    UnitBase _owner;
+    [SerializeField]UnitBase _owner;
 
     float _countTime = 0;
-    public void Setup(UnitBase owner)
+    public void Setup()
     {
-        _owner = owner;
-        circleRange.radius = owner.CurrentConfig.AttackRange;
+        circleRange.radius = _owner.CurrentConfig.AttackRange;
         bullet = Resources.Load<GameManagement>("GameConfig").GetBullet(_owner.TypeUnit);
         _countTime = _owner.CurrentConfig.FireRate;
     }
@@ -41,7 +40,6 @@ public class AttackSystem : MonoBehaviour
     {
         if (!collision.CompareTag(GameTag.Unit)) return;
         if (!collision.TryGetComponent(out _unit)) return;
-        Debug.Log($"Is Tower = {_unit is TowerUnit}");
         if (!_owner.CanAttack(_unit))
         {
             _unit = null;
@@ -96,7 +94,6 @@ public class AttackSystem : MonoBehaviour
     {
         // Logic check: enemy co trong target queue k
         // neu co thi remove
-        Debug.Log($"Check remove {target.gameObject.name}");
         CheckRemove(target);
     }
     #endregion

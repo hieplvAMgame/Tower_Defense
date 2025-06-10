@@ -64,6 +64,7 @@ public abstract class UnitBase : MonoBehaviour
 
     // TODO: Refactor
     public event Action<UnitBase> onDie;
+    #region Initialize
     [Button("Init")]
     public virtual void InitUnit( bool isReset = false)
     {
@@ -73,16 +74,10 @@ public abstract class UnitBase : MonoBehaviour
         IsAlive = true;
         if (_attackSystem)
         {
-            _attackSystem.Setup(this);
+            _attackSystem.Setup();
         }
     }
-    public UnitBase AddEvent(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
-    {
-        this.onHeal = onHeal;
-        this.onHurt = onHurt;
-        this.onDie += onDie;
-        return this;
-    }
+
     public virtual void ApplyConfig(int id = -1)
     {
         // default
@@ -95,6 +90,9 @@ public abstract class UnitBase : MonoBehaviour
         _currentConfig = Config[id];
         CurrentHP = _currentConfig.MaxHp;
     }
+    #endregion
+
+    #region Action
 
     public virtual void ChangeHp(int hp)
     {
@@ -106,6 +104,16 @@ public abstract class UnitBase : MonoBehaviour
         if (CurrentLevel >= Config.Length)
             CurrentLevel = Config.Length - 1;
         ApplyConfig(CurrentLevel);
+    }
+    #endregion
+
+    #region Handle Event
+    public UnitBase AddEvent(Action onHurt = null, Action onHeal = null, Action<UnitBase> onDie = null)
+    {
+        this.onHeal = onHeal;
+        this.onHurt = onHurt;
+        this.onDie += onDie;
+        return this;
     }
     public virtual void OnHurt()
     {
@@ -119,6 +127,7 @@ public abstract class UnitBase : MonoBehaviour
     public virtual void OnDie()
     {
         onDie?.Invoke(this);
+        GameplayManager.Instance.LocalData.EarnCoin(_currentConfig.coinOnDestroy);
         IsAlive = false;
         gameObject.SetActive(false);
     }
@@ -126,4 +135,5 @@ public abstract class UnitBase : MonoBehaviour
     {
         onDie = null;
     }
+    #endregion
 }
